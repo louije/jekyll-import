@@ -24,6 +24,7 @@ module JekyllImport
           c.option "grab_images",    "--grab_images",    "Whether to grab images (default: false)"
           c.option "add_highlights", "--add_highlights", "Whether to add highlights (default: false)"
           c.option "rewrite_urls",   "--rewrite_urls",   "Whether to rewrite URLs (default: false)"
+          c.option "add_tag",        "--add_tag",        "What tag to add to imported posts (default: nil)"
         end
 
         def process(options)
@@ -32,6 +33,7 @@ module JekyllImport
           grab_images    = options.fetch("grab_images", false)
           add_highlights = options.fetch("add_highlights", false)
           rewrite_urls   = options.fetch("rewrite_urls", false)
+          @add_tag        = options.fetch("add_tag", nil)
 
           @grab_images = grab_images
           FileUtils.mkdir_p "_posts/tumblr"
@@ -160,13 +162,15 @@ module JekyllImport
                   else
                     post["id"]
                   end
+
+          tags = (post["tags"] || []).push(*@add_tag)
           {
             :name    => "#{date}-#{slug}.#{format}",
             :header  => {
               "layout"     => "post",
               "title"      => title,
               "date"       => Time.parse(post["date"]).xmlschema,
-              "tags"       => (post["tags"] || []),
+              "tags"       => tags,
               "tumblr_url" => post["url-with-slug"],
             },
             :content => content,
